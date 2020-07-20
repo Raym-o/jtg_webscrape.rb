@@ -4,7 +4,7 @@ require 'nokogiri'
 require 'json'
 require 'pry'
 
-count = 1
+count = 2
 title_array = []
 image_array = []
 price_array = []
@@ -23,7 +23,7 @@ description_labels = [
   'Company history', 'Preparation', 'Note', 'Tip'
 ]
 # Search page loop
-26.times do
+1.times do
   page = HTTParty.get("https://justthegoods.net/search?page=#{count}&q=*")
 
   parse_page = Nokogiri::HTML(page)
@@ -55,33 +55,15 @@ description_labels = [
         description_hash[:main_description] =
           re.slice(opening_ptag_index, clipped_total)
             .delete_suffix('<')
-            .gsub(/<span>/, '')
-            .gsub(%r{</p>}, '')
-            .gsub(%r{</span>}, '')
-            .gsub(/<br>/, '')
-            .gsub(/<p>/, '')
-            .gsub(/<div>/, '')
-            .gsub(%r{</div>}, '')
-            .gsub(/<span style="font-weight: 400;">/, '')
-            .gsub(/<li style="font-weight: 400;">/, '')
-            .gsub(/<ul>/, ' ')
-            .gsub(%r{</ul>}, ' ')
-            .gsub(/<li>/, '')
-            .gsub(%r{</li>}, ',')
+            .gsub(%r{<(?!a)(?!(/a))[^>]*>}, ' ') # Remove all html tags except <a> or </a> tags
+            .squeeze(' ')
             .strip
       end
       unless description_followup.nil?
         description_hash[description_followup] =
           re.delete_prefix('>')
             .delete_suffix('<')
-            .gsub(/<span>/, '')
-            .gsub(%r{</p>}, '')
-            .gsub(%r{</span>}, '')
-            .gsub(/<br>/, '')
-            .gsub(/<p>/, '')
-            .gsub(/<div>/, '')
-            .gsub(%r{</div>}, '')
-            .gsub(/<span style="font-weight: 400;">/, '')
+            .gsub(%r{<(?!a)(?!(/a))[^>]*>}, ' ') # Remove all html tags except <a> or </a> tags
             .strip
         description_followup = nil
       end
@@ -163,4 +145,4 @@ max_iterations.times do
   ct_master += 1
 end
 
-File.write('./jtg_data.json', JSON.dump(master_array))
+File.write('./testing_data.json', JSON.dump(master_array))
